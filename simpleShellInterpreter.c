@@ -1,61 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <fcntl.h>
 
-int main(int argc, char *argv[]) {
-	int fd;
-	if (argc<2) {
-		printf("usage with cmd\n");
-		exit(1);
-	}
-	else {
-		if (argc == 2) {
-			if (!strcmp(argv[1], "exit")) {
-				printf("program end\n");
-				exit(1);
-			}
-			else if (argv[1] != '\0') {
-				system(argv[1]);
-				exit(1);
+#define MAX 1024
 
-			}
-		}//argc 2 end
-		else if (argc == 3) {
-			if (argv[1] != '\0' && !strcmp(argv[2], '&')) {
-				if (fork() == 0) {
-					execl("/bin/argv[1]", "argv[1]", "&", NULL);
-					fprintf(stderr, "first failed\n");
-					exit(1);
-				}
-			}
+char *GetNextString(char *cmd, char det, char *buf, char del);
 
-		}//argc 3end
-		else if (argc == 4) {
-			if (argv[1], argv[3] != '\0' && !strcmp(argv[2], '>')) {
-				fd = open(argv[3], O_CREAT | O_TRUNC | O_WRONLY, 0600);
-				system(argv[1]);
-				dup2(1, fd);
-				close(fd);
-			}
-			else if (argv[1], argv[3] != '\0' && !strcmp(argv[2], '<')) {
-				fd = open(argv[3], O_RDWR, 0777);
-				system(argv[1]);
-				dup2(fd, 1);
-				close(fd);
-			}
-
-		}//argc 4ed
-		else if (argc == 5) {
-			if (argv[1], argv[3], argv[5] != '\0' && !strcmp(argv[2], ';') && !strcmp(argv[4], ';')) {
-				system(argv[1]);
-				system(argv[3]);
-				system(argv[5]);
-			}
-		}//else if argc 5 end
+static char line[MAX];
+int main() {
+	int fp;
+	char buf[MAX];
+	char *cmd;
+	char *next;
+	int input = 0;
+	int first = 1;
+	char exit[MAX] = "exit";
+	do {
+		printf("# : ");
+		if (!fgets(line, sizeof(line), stdin)) {
+			return 0;
+		}
 
 
-	}//else end
+		cmd = line;
+
+		if ((next = strchr(cmd, '|')) == NULL) {
+			system(cmd);
+		}
+		else if ((next = strchr(cmd, '|')) != NULL) {
+			system(cmd);
+			cmd = GetNextString(cmd, '|', buf, ' ');
+			system(cmd);
+
+		}
+		else if ((next = strchr(cmd, '&')) != NULL) {
+			execl("bin/cmd", "cmd", "next", NULL);
+		}//else if end
+		else if ((next = strchr(cmd, '>')) != NULL) {
+			system(cmd);
+			cmd = GetNextString(cmd, '>', buf, ' ');
+			fp = open(cmd, O_CREAT | O_TRUNC | O_WRONLY, 0600);
+			dup2(1, fp);
+			close(fp);
+		}
+		else if ((next = strchr(cmd, '<')) != NULL) {
+			system(cmd);
+			cmd = GetNextString(cmd, '>', buf, ' ');
+			fp = open(cmd, O_RDWR, 0777);
+			dup2(fp, 1);
+			close(fp);
+		}
+	} while (strcmp(cmd, "exit"));
 }
+
+char *GetNextString(char *cmd, char det, char *buf, char del) {
+	while (*a &&*a == d)  a++;
+	while (*a &&*a != b) *c++ = *a++;
+	*c = 0;
+
+	if (*a == b) a++;
+	return a;
+}
+
